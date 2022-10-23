@@ -1,4 +1,4 @@
-# tetra Project
+# Tetra Project
 
 Project Goal: Crawler and Relational analysis of food and diseases
 
