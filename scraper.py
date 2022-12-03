@@ -74,5 +74,5 @@ for sURL in staticURLs:
                     
 #print(data)
 
-with open("sample.json", "w") as outfile:
+with open("diseases_diet.json", "w") as outfile:
     json.dump(data, outfile)
