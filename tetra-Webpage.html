@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Mass Shootings in the United States</title>
+<title>Recommended Diets Per Disease</title>
 <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
@@ -97,216 +97,147 @@ div.tooltip {
 
 </style>
 </head>
-<body onload='init()'>
+<body>
 
 <!-- Page content -->
 <div style="max-width:2000px;margin-top:46px">
 
-    <h2 >Recommended Diets Per Disease</h2>
-     <p >The following information is based off of information gained from Wikipedia.org. The following reocmmendations were discerned by way of sentiment analysis and text mining.<br><br><strong>Disclaimer: </strong>We cannot guarantee the validity of the following diet recommendations, as Wikipedia is a open contribution platform. Please see a nutritionist or physician before committing to any major dietary changes.</p>
+  <h2 >Recommended Diets Per Disease</h2>
+  <br>
+  <div class="txt">
+      <p >The following information is based off of data gained from Wikipedia.org. The following recommendations were discerned by way of sentiment analysis and text mining.<br><br><strong>Disclaimer: </strong>We cannot guarantee the validity of the following diet recommendations, as Wikipedia is a open contribution platform. Please see a nutritionist or physician before committing to any major dietary changes.</p>
 
-<label for="cars">Selected Disease: </label>
+    </div>
+    <br>
+    <br>
 
-<select name="ddlDisease" id="ddlDisease">
-  <option value="">--Select One--</option>
-</select>
-  
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-6">
+          <label for="cars">Selected Disease: </label>
+          <select title="Diseases" name="ddlDisease" id="ddlDisease">
+            <option value="">--Select One--</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
   <div class="container">
   <div class="row">
     <div class="col-sm-6">
       <h3>Recommended</h3>
-      <ul>
-        <li>Example</li>
+      <ul id="pos" >
       </ul>
     </div>
     <div class="col-sm-6">
       <h3>Not Recommended</h3>
-      <ul>
-        <li>Example</li>
-      </ul>    </div>
+      <ul id="neg">
+      </ul> 
+    </div>
   </div>
 </div>
-    
-	<!-- SVG GOES HERE -->
-	<div class="canvas">
-		<svg></svg>
-		
-		
-	</div>
+    <br>
+    <br>
+<div class="container">
+  <div class="row">
+    <div class="col-sm-6" id="hid" hidden="true" >
+      <h3>Non-weighted diet items</h3>
+      <ul id="neutral" >
+      </ul>
+    </div>
+  </div>
+</div>
 	
- <!--<div class="float-container">
-	  <a class="btn" href="/index2.html">Next &nbsp;</a>
-  </div> -->
+ <div class="float-container">
+	  <a id="btnShowAll" class="btn">Show All Results &nbsp;</a>
+  </div>
 <!-- End Page Content -->
 </div>
 
 
 <script>
-async function init() {
-<!-- CODE GOES HERE -->
-const parseDate = d3.timeParse("%m/%d/%Y");
 
-const data = await d3.csv("https://raw.githubusercontent.com/DHUIUC/dhuiuc.github.io/main/Mass_Shooting_Data_Simplified.csv", function(d){
-	return {
-		date: parseDate(d.Date),
-		dead: d.Dead,
-		injured: d.Injured,
-	};
+$( document ).ready(function() {
+  $.getJSON('https://raw.githubusercontent.com/vkara5/CS410-tetra-Project/main/diet_output_new.json', function(data) {
+    
+    var sel = $('#ddlDisease');
+    const diseaseList = Object.keys(data).sort()
+
+    $.each(diseaseList, function (i, value) {
+                sel.append('<option value="' + value + '">' + value + '</option>');
+            });
+
+    console.log(diseaseList)
+
+  });
 });
 
-d3.selectAll(".new")
-		.transition()
-		.style("opacity",1);
+$('#ddlDisease').on('change', function() {
+  var sel = $('#ddlDisease');
+  const selected = sel.find(":selected").val()
+  if (selected != ""){
+      bindDiet(selected)
+      var hid = $('#hid');
+      hid.prop('hidden', true);
+  }
+});
 
-console.log(data);
+$('#btnShowAll').on('click',function(){
+  var hid = $('#hid');
+  hid.removeAttr('hidden');
 
-var margin = {top: 10, right: 30, bottom: 30, left: 60},
-    width = 1200 - margin.left - margin.right,
-    height = 600 - margin.top - margin.bottom;
+  var neutral = $('#neutral');
+  neutral.empty();
 
-var svg = d3.select("svg")
-	.attr("width",width + margin.left + margin.right)
-	.attr("height",height + margin.top + margin.bottom)
-	.append("g")
-	.attr("transform","translate("+margin.left+","+margin.top+")");
-
-
-var x = d3.scaleTime().domain([d3.min(data, function(d) { return d.date; }),
-							   d3.max(data, function(d) { return d.date; })])
-					  .range([ 0, width ]);
-
-var scaleHeightY = (d3.max(data, function(d) { return +d.dead; }) / 
-					   d3.max(data, function(d) { return +d.injured; }) * 
-					   height);
-
-//This is only for the number of deaths			  
-var y = d3.scaleLinear().domain([0, d3.max(data, function(d) { return +d.dead; })])
-						 .range([scaleHeightY, 0 ]);
-	  
-//This is only for the number of injured
-var y2 = d3.scaleLinear().domain([0, d3.max(data, function(d) { return +d.injured; })])
-						 .range([ height, 0 ]);
-
-
-var tooltipBubble = d3.select("svg").append("circle")
-    .attr("r",3)
-    .attr("cx",width/2)
-    .attr("cy",height/2)
-    .style("opacity", 0)
+  $.getJSON('https://raw.githubusercontent.com/vkara5/CS410-tetra-Project/main/diet_output_new.json', function(data) {
     
-//var tooltipBubble = d3.select("circle");
-var tooltip = d3.select(".canvas")
-    .append("div")
-	.classed("tooltip", true)
-	.style("background-color", "white")
-	.style("border", "solid")
-	.style("border-width", "2px")
-	.style("border-radius", "5px")
-	.style("padding", "5px")
-    .style("opacity", 0)
+    var sel = $('#ddlDisease');
+    const selected = sel.find(":selected").val()
+    if (selected != ""){
+      const diseaseData = data[selected]
+
+      $.each(diseaseData, function (i, value) {
+
+        if (value == 'neutral'){
+          neutral.append('<li>' + i + '</li>');
+        }
+      });
+    }
+    else{
+      const diseaseData = data['Gout']
+
+      $.each(diseaseData, function (i, value) {
+          neutral.append('<li>' + i + '</li>');
+      });
+    }
+
+  });
+
+});
+
+function bindDiet(disease){
+
+  console.log('in fnctn')
+  $.getJSON('https://raw.githubusercontent.com/vkara5/CS410-tetra-Project/main/diet_output_new.json', function(data) {
     
-//add text styling if needed
-//MOUSE EVENTS BLUE LINE
-var mouseOverBlue = function(d){
-    tooltipBubble
-        .style("opacity", 1)
-        .style("fill", "steelblue")
-        
-    tooltip.style("opacity", 1)
-    
-    d3.select(this).style("stroke-opacity", 1);
-}
-var mouseMoveBlue = function(d){
-        
-    tooltipBubble
-        .attr("cx", (d3.mouse(this)[0]+60) + "px")
-        .attr("cy", (d3.mouse(this)[1]+400) + "px")
-        
-    tooltip.html('<b><u>' + formatDate(x.invert(d3.mouse(this)[0])) + '</u><b>' + '<br>' + 'No. Killed: <span style="color:maroon">'
-				 + Math.round(y.invert(d3.mouse(this)[1])) + '</span>')
-	.style("left", (d3.mouse(this)[0]+300) + "px")
-	.style("top", (d3.mouse(this)[1]+540) + "px")			 
-	
-}
-var mouseLeaveBlue = function(d){
-    tooltipBubble.style("opacity", 0)
-    tooltip.style("opacity", 0)
-    d3.select(this).style("stroke-opacity", 0.7);
-}
-//MOUSE EVENTS ORANGE LINE
-var mouseOverOrange = function(d){
-    tooltipBubble
-        .style("opacity", 1)
-        .style("fill", "orange")
-        
-    tooltip.style("opacity", 1)
-    
-    d3.select(this).style("stroke-opacity", 1);
-}
-var mouseMoveOrange = function(d){
-        
-    tooltipBubble
-        .attr("cx", (d3.mouse(this)[0]+60) + "px")
-        .attr("cy", (d3.mouse(this)[1]+15) + "px")
-        
-    tooltip.html('<u>' + formatDate(x.invert(d3.mouse(this)[0])) + '</u>' + '<br>' + 'No. Injured: <span style="color:maroon">'
-				 + Math.round(y2.invert(d3.mouse(this)[1])) + '</span>')
-			.style("left", (d3.mouse(this)[0]+260) + "px")
-			.style("top", (d3.mouse(this)[1]+170) + "px")
-}
-var mouseLeaveOrange = function(d){
-    tooltipBubble.style("opacity", 0)
-    tooltip.style("opacity", 0)
-    d3.select(this).style("stroke-opacity", 0.7);
-}
+    var diseaseData = data[disease]
+    var positive = $('#pos');
+    var negative = $('#neg');
+    positive.empty();
+    negative.empty();
 
-var formatDate = function(date){
-	dt = [date.getMonth()+1, date.getDate(), date.getFullYear()];
-	return dt.join("/");
+    $.each(diseaseData, function (i, value) {
+
+                if (value == 'positive'){
+                  positive.append('<li>' + i + '</li>');
+                }
+                else if (value == 'negative'){
+                  negative.append('<li>' + i + '</li>');
+                }
+            });
+
+  });
 }
-
-svg.append("g")
-      .attr("transform", "translate(0," + height + ")")
-      .call(d3.axisBottom(x));
-
-//because y2 is higher
-svg.append("g")
-      .call(d3.axisLeft(y2));
-
-svg.append("path")
-	  .datum(data)
-      .attr("fill", "none")
-	  .style("stroke-opacity", 0.7)
-	  .attr("transform","translate("+0+","+385+")")
-      .attr("stroke", "steelblue")
-      .attr("stroke-width", 2)
-	  .attr("stroke-linejoin", "round")
-      .attr("d", d3.line()
-        .x(function(d) { return x(d.date) })
-        .y(function(d) { return y(d.dead) }))
-	  .on("mouseover", mouseOverBlue)
-	  .on("mousemove", mouseMoveBlue)
-	  .on("mouseleave", mouseLeaveBlue);
-		
-svg.append("path")
-	  .datum(data)
-      .attr("fill", "none")
-	  .style("stroke-opacity", 0.7)
-	  .style("padding-top", "400px")
-      .attr("stroke", "orange")
-      .attr("stroke-width", 2)
-	  .attr("stroke-linejoin", "round")
-      .attr("d", d3.line()
-        .x(function(d) { return x(d.date) })
-        .y(function(d) { return y2(d.injured) }))
-	  .on("mouseover", mouseOverOrange)
-	  .on("mousemove", mouseMoveOrange)
-	  .on("mouseleave", mouseLeaveOrange);
-
-
-<!-- CODE ENDS HERE-->
-}
-
 
 </script>
 
